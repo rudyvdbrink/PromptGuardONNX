@@ -1,0 +1,50 @@
+[project]
+name = "promptguard-onnx"
+version = "0.1.0"
+description = "Export Meta's Llama Prompt Guard 2 classifiers to ONNX (fp32 and dynamic uint8)."
+readme = "README.md"
+# Byte-for-byte reproduction of the reference export was verified on CPython 3.11.
+requires-python = "==3.11.*"
+# These pins reproduce the gravitee-io reference files (HF revision da68d0f) byte for byte.
+# They differ from the reference GitHub requirements.txt, which did not produce those files:
+# - transformers 4.40.2 gives the same DeBERTa graph (newer versions trace a different one).
+# - onnxoptimizer 0.4.2 gives the same tensor names in model.quant.onnx (0.3.x does not).
+# torch 2.7 still uses the TorchScript ONNX exporter by default.
+dependencies = [
+    "hf-xet>=1.8.0",
+    "numpy==2.0.2",
+    "onnx==1.18.0",
+    "onnxoptimizer==0.4.2",
+    "onnxruntime==1.19.2",
+    "torch==2.7.1",
+    "transformers==4.40.2",
+]
+
+[project.scripts]
+promptguard-export = "promptguard_onnx.export:main"
+promptguard-verify = "promptguard_onnx.verify:main"
+promptguard-upload = "promptguard_onnx.upload:main"
+
+[build-system]
+requires = ["uv_build>=0.8.14,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "PTH", "RUF"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.5",
+]
